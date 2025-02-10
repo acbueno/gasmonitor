@@ -1,0 +1,9 @@
+spring:
+  application:
+    name: gasmonitor
+  data:
+    mongodb: 
+      database: gasmonitor
+      uri: mongodb://root:4whLo5aoOWm8xRx@localhost:27017/gasmonitor?authSource=admin
+server:
+  port: 8091

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monitoramento de Gás</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.1/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+</head>
+<body>
+    <h1>Monitoramento de Gás</h1>
+    <p>Pressão Atual: <span id="pressure" style="font-weight: bold;">Aguardando dados...</span></p>
+    <p>Status da Válvula: <span id="valve" style="font-weight: bold; color: green;">Aberta</span></p>
+    <p><strong id="alert" style="color: red;"></strong></p>
+	<h3>Últimas 5 Leituras</h3>
+	<ul id="last5Readings"></ul>
+    <button onclick="resetValve()">🔄 Resetar Válvula</button>
+
+    <script>
+        var socket = new SockJS('/ws');
+        var stompClient = Stomp.over(socket);
+		
+		function formatTimestamp(timestamp) {
+				    const date = new Date(Number(timestamp)); // Converte o timestamp para um objeto Date
+				    return date.toLocaleString("pt-BR", {
+				        day: "2-digit",
+				        month: "2-digit",
+				        year: "numeric",
+				        hour: "2-digit",
+				        minute: "2-digit",
+				        second: "2-digit"
+				    });
+				}
+				
+		function formatLeakDetect(leackDetect) {
+			if(leackDetect === true) {
+				return "Vazamento de Gás"
+			} else {
+				return "Sem Vazamento Gás"
+			}
+		}
+
+        stompClient.connect({}, function () {
+            console.log("🔗 Conectado ao WebSocket");
+
+            stompClient.subscribe('/topic/pressure', function (message) {
+                var pressure = parseFloat(message.body);
+                var pressureElement = document.getElementById("pressure");
+
+                pressureElement.innerText = pressure.toFixed(2) + " bar";
+                
+                if (pressure > 8.5) {
+                    pressureElement.style.color = "red";
+                } else {
+                    pressureElement.style.color = "black"; 
+                }
+            });
+
+            stompClient.subscribe('/topic/alert', function (message) {
+                document.getElementById("alert").innerText = message.body;
+            });
+			
+		
+			
+			stompClient.subscribe("/topic/last5", function (message) {
+			              const readings = JSON.parse(message.body);
+			              const list = document.getElementById("last5Readings");
+			              list.innerHTML = "";
+			              readings.forEach(reading => {
+			                  const item = document.createElement("li");
+			                  item.textContent = `Pressão: ${reading.pressure.toFixed(2)} - ${formatTimestamp(reading.timestamp)} - ${formatLeakDetect(reading.leakDetect)}`;
+			                  list.appendChild(item);
+			              });
+			          });
+
+            stompClient.subscribe('/topic/valve', function (message) {
+                var valveStatus = message.body;
+                var valveElement = document.getElementById("valve");
+
+                valveElement.innerText = valveStatus;
+                valveElement.style.color = (valveStatus === "Fechada") ? "red" : "green";
+            });
+        });
+
+        function resetValve() {
+            fetch('/api/valve/reset', { method: 'POST' })
+                .then(response => response.text())
+                .then(message => alert(message));
+        }
+		
+		
+    </script>
+</body>
+</html>
