@@ -14,12 +14,12 @@ GasMonitor is a real-time gas monitoring system using WebSockets and Spring Boot
 
 ## Technologies Used
 
-| Technology     | Description                     |
-| -------------- | ------------------------------- |
-| **Java 17+**   | Backend framework (Spring Boot) |
-| **WebSockets** | Real-time data streaming        |
-| **InfluxDB**   | Time-series data storage        |
-| **Vue.js**     | Frontend visualization          |
+| Technology                | Description                     |
+| ------------------------- | ------------------------------- |
+| **Java 17+**              | Backend framework (Spring Boot) |
+| **WebSockets**            | Real-time data streaming        |
+| **MongoDB**               | NoSQL data storage              |
+| **Javascript and HTML**   | Frontend visualization          |
 
 ## Installation
 
